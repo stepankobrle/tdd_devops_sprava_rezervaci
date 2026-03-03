@@ -142,7 +142,9 @@ describe('ReservationsService', () => {
     });
   });
 
-   // =========================================================
+
+
+  // =========================================================
   // 4. Výpočet ceny rezervace
   // Cena = počet hodin × cena za hodinu místnosti.
   // Čistá funkce — žádná DB, žádný async.
@@ -163,7 +165,6 @@ describe('ReservationsService', () => {
 
       const price = service.calculatePrice(startAt, endAt, 100);
 
-      // 1.5 hodiny se zaokrouhlí nahoru → 2 hodiny → 200 Kč
       expect(price).toBe(200);
     });
 
@@ -174,6 +175,35 @@ describe('ReservationsService', () => {
       expect(() => service.calculatePrice(startAt, endAt, 100)).toThrow(
         BadRequestException,
       );
+    });
+  });
+
+  // =========================================================
+  // 5. Idempotence — zrušenou rezervaci nelze znovu zrušit
+  // Pokud je rezervace již ve stavu CANCELLED, další pokus
+  // o zrušení musí vyhodit BadRequestException.
+  // Testuje správnost stavového automatu.
+  // =========================================================
+  describe('cancelReservation - idempotence', () => {
+    it('should throw BadRequestException when reservation is already cancelled', async () => {
+      const cancelledReservation: Partial<Reservation> = {
+        id: 1,
+        startAt: new Date('2025-06-01T10:00:00'),
+        endAt: new Date('2025-06-01T12:00:00'),
+        status: ReservationStatus.CANCELLED,
+      };
+      reservationRepository.findOne.mockResolvedValue(cancelledReservation);
+
+     
+      jest.spyOn(Date, 'now').mockReturnValue(
+        new Date('2025-06-01T09:00:00').getTime(),
+      );
+
+      await expect(service.cancelReservation(1)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      jest.restoreAllMocks();
     });
   });
 });
