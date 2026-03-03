@@ -63,6 +63,12 @@ export class ReservationsService {
       throw new NotFoundException(`Rezervace ${id} neexistuje.`);
     }
 
+    if (reservation.status === ReservationStatus.CANCELLED) {
+      throw new BadRequestException(
+        'Rezervaci nelze zrušit — již byla zrušena.',
+      );
+    }
+
     if (Date.now() > reservation.endAt.getTime()) {
       throw new BadRequestException(
         'Rezervaci nelze zrušit — již skončila.',
