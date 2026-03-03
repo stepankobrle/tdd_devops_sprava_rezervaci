@@ -45,4 +45,8 @@ export class ReservationsService {
 
     return this.reservationRepository.save(reservation);
   }
+
+  cancelReservation(_id: number): Promise<Reservation> {
+    return Promise.reject(new Error('Not implemented'));
+  }
 }

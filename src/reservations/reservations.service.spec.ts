@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ReservationsService } from './reservations.service';
 import { Reservation, ReservationStatus } from './reservation.entity';
-import { ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 
 // Tento pattern je bezpečnější pro TypeScript + ESLint:
 // ReturnType<typeof createMockRepository> odvodí typ přímo z funkce,
@@ -87,6 +87,60 @@ describe('ReservationsService', () => {
 
       expect(reservationRepository.save).toHaveBeenCalled();
       expect(result).toMatchObject({ id: 42 });
+    });
+  });
+
+  // =========================================================
+  // BUSINESS PRAVIDLO 2: Stavový přechod — zrušení po skončení
+  // Rezervaci nelze zrušit pokud již skončila (endAt je v minulosti).
+  // Mockujeme čas pomocí jest.spyOn(Date, 'now') — externí závislost.
+  // =========================================================
+  describe('cancelReservation', () => {
+    it('should throw BadRequestException when reservation has already ended', async () => {
+      // Rezervace skončila v minulosti
+      const pastReservation: Partial<Reservation> = {
+        id: 1,
+        startAt: new Date('2025-01-01T10:00:00'),
+        endAt: new Date('2025-01-01T12:00:00'),
+        status: ReservationStatus.CONFIRMED,
+      };
+      reservationRepository.findOne.mockResolvedValue(pastReservation);
+
+      // Mockujeme "teď" na datum po skončení rezervace
+      jest.spyOn(Date, 'now').mockReturnValue(
+        new Date('2025-01-01T13:00:00').getTime(),
+      );
+
+      await expect(service.cancelReservation(1)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      jest.restoreAllMocks();
+    });
+
+    it('should cancel reservation when it has not ended yet', async () => {
+      const activeReservation: Partial<Reservation> = {
+        id: 1,
+        startAt: new Date('2025-06-01T10:00:00'),
+        endAt: new Date('2025-06-01T12:00:00'),
+        status: ReservationStatus.CONFIRMED,
+      };
+      reservationRepository.findOne.mockResolvedValue(activeReservation);
+
+      const cancelled = { ...activeReservation, status: ReservationStatus.CANCELLED };
+      reservationRepository.save.mockResolvedValue(cancelled);
+
+      // Mockujeme "teď" na datum před skončením rezervace
+      jest.spyOn(Date, 'now').mockReturnValue(
+        new Date('2025-06-01T11:00:00').getTime(),
+      );
+
+      const result = await service.cancelReservation(1);
+
+      expect(result.status).toBe(ReservationStatus.CANCELLED);
+      expect(reservationRepository.save).toHaveBeenCalled();
+
+      jest.restoreAllMocks();
     });
   });
 });
