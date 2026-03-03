@@ -40,7 +40,7 @@ describe('ReservationsService', () => {
   });
 
   // =========================================================
-  // BUSINESS PRAVIDLO 1: Kolize časů
+  // 1.Kolize časů
   // Pokud je místnost v daném časovém úseku již rezervována,
   // nelze vytvořit novou rezervaci — musí být vyhozena výjimka.
   // =========================================================
@@ -91,13 +91,12 @@ describe('ReservationsService', () => {
   });
 
   // =========================================================
-  // BUSINESS PRAVIDLO 2: Stavový přechod — zrušení po skončení
+  // 2. Stavový přechod — zrušení po skončení
   // Rezervaci nelze zrušit pokud již skončila (endAt je v minulosti).
   // Mockujeme čas pomocí jest.spyOn(Date, 'now') — externí závislost.
   // =========================================================
   describe('cancelReservation', () => {
     it('should throw BadRequestException when reservation has already ended', async () => {
-      // Rezervace skončila v minulosti
       const pastReservation: Partial<Reservation> = {
         id: 1,
         startAt: new Date('2025-01-01T10:00:00'),
@@ -106,7 +105,6 @@ describe('ReservationsService', () => {
       };
       reservationRepository.findOne.mockResolvedValue(pastReservation);
 
-      // Mockujeme "teď" na datum po skončení rezervace
       jest.spyOn(Date, 'now').mockReturnValue(
         new Date('2025-01-01T13:00:00').getTime(),
       );
@@ -130,7 +128,6 @@ describe('ReservationsService', () => {
       const cancelled = { ...activeReservation, status: ReservationStatus.CANCELLED };
       reservationRepository.save.mockResolvedValue(cancelled);
 
-      // Mockujeme "teď" na datum před skončením rezervace
       jest.spyOn(Date, 'now').mockReturnValue(
         new Date('2025-06-01T11:00:00').getTime(),
       );
