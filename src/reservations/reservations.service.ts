@@ -46,8 +46,14 @@ export class ReservationsService {
     return this.reservationRepository.save(reservation);
   }
 
-  calculatePrice(_startAt: Date, _endAt: Date, _pricePerHour: number): number {
-    throw new Error('Not implemented');
+  calculatePrice(startAt: Date, endAt: Date, pricePerHour: number): number {
+    if (endAt <= startAt) {
+      throw new BadRequestException('Konec rezervace musí být po začátku.');
+    }
+    const hours = Math.ceil(
+      (endAt.getTime() - startAt.getTime()) / (1000 * 60 * 60),
+    );
+    return hours * pricePerHour;
   }
 
   async cancelReservation(id: number): Promise<Reservation> {
