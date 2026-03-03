@@ -1,19 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { ReservationsService } from './reservations.service';
 import { Reservation, ReservationStatus } from './reservation.entity';
 import { ConflictException } from '@nestjs/common';
 
-
-type MockRepository = Partial<Record<keyof Repository<Reservation>, jest.Mock>>;
-
-const createMockRepository = (): MockRepository => ({
+// Tento pattern je bezpečnější pro TypeScript + ESLint:
+// ReturnType<typeof createMockRepository> odvodí typ přímo z funkce,
+// takže TypeScript ví přesně že find, save, create jsou jest.Mock funkce.
+const createMockRepository = () => ({
   find: jest.fn(),
   findOne: jest.fn(),
   save: jest.fn(),
   create: jest.fn(),
 });
+
+type MockRepository = ReturnType<typeof createMockRepository>;
 
 describe('ReservationsService', () => {
   let service: ReservationsService;
@@ -24,7 +25,6 @@ describe('ReservationsService', () => {
       providers: [
         ReservationsService,
         {
-          
           provide: getRepositoryToken(Reservation),
           useValue: createMockRepository(),
         },
@@ -46,14 +46,15 @@ describe('ReservationsService', () => {
   // =========================================================
   describe('createReservation', () => {
     it('should throw ConflictException when room is already reserved in that time slot', async () => {
-     
       const existingReservation: Partial<Reservation> = {
         id: 1,
         startAt: new Date('2025-06-01T10:00:00'),
         endAt: new Date('2025-06-01T12:00:00'),
         status: ReservationStatus.CONFIRMED,
       };
-      reservationRepository.find!.mockResolvedValue([existingReservation]);
+
+      reservationRepository.find.mockResolvedValue([existingReservation]);
+
       await expect(
         service.createReservation({
           roomId: 1,
@@ -65,7 +66,7 @@ describe('ReservationsService', () => {
     });
 
     it('should create reservation when room is free in that time slot', async () => {
-      reservationRepository.find!.mockResolvedValue([]);
+      reservationRepository.find.mockResolvedValue([]);
 
       const savedReservation: Partial<Reservation> = {
         id: 42,
@@ -74,8 +75,8 @@ describe('ReservationsService', () => {
         status: ReservationStatus.PENDING,
       };
 
-      reservationRepository.create!.mockReturnValue(savedReservation);
-      reservationRepository.save!.mockResolvedValue(savedReservation);
+      reservationRepository.create.mockReturnValue(savedReservation);
+      reservationRepository.save.mockResolvedValue(savedReservation);
 
       const result = await service.createReservation({
         roomId: 1,
