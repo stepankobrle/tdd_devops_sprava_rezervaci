@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, MoreThan, Not, Repository } from 'typeorm';
 import { Reservation, ReservationStatus } from './reservation.entity';
@@ -46,7 +46,20 @@ export class ReservationsService {
     return this.reservationRepository.save(reservation);
   }
 
-  cancelReservation(_id: number): Promise<Reservation> {
-    return Promise.reject(new Error('Not implemented'));
+  async cancelReservation(id: number): Promise<Reservation> {
+    const reservation = await this.reservationRepository.findOne({ where: { id } });
+
+    if (!reservation) {
+      throw new NotFoundException(`Rezervace ${id} neexistuje.`);
+    }
+
+    if (Date.now() > reservation.endAt.getTime()) {
+      throw new BadRequestException(
+        'Rezervaci nelze zrušit — již skončila.',
+      );
+    }
+
+    reservation.status = ReservationStatus.CANCELLED;
+    return this.reservationRepository.save(reservation);
   }
 }
