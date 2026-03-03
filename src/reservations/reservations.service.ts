@@ -46,6 +46,10 @@ export class ReservationsService {
     return this.reservationRepository.save(reservation);
   }
 
+  calculatePrice(_startAt: Date, _endAt: Date, _pricePerHour: number): number {
+    throw new Error('Not implemented');
+  }
+
   async cancelReservation(id: number): Promise<Reservation> {
     const reservation = await this.reservationRepository.findOne({ where: { id } });
 

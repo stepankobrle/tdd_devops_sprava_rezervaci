@@ -90,6 +90,7 @@ describe('ReservationsService', () => {
     });
   });
 
+
   // =========================================================
   // 2. Stavový přechod — zrušení po skončení
   // Rezervaci nelze zrušit pokud již skončila (endAt je v minulosti).
@@ -138,6 +139,41 @@ describe('ReservationsService', () => {
       expect(reservationRepository.save).toHaveBeenCalled();
 
       jest.restoreAllMocks();
+    });
+  });
+
+   // =========================================================
+  // 4. Výpočet ceny rezervace
+  // Cena = počet hodin × cena za hodinu místnosti.
+  // Čistá funkce — žádná DB, žádný async.
+  // =========================================================
+  describe('calculatePrice', () => {
+    it('should return correct price for 2 hour reservation at 100 per hour', () => {
+      const startAt = new Date('2025-06-01T10:00:00');
+      const endAt = new Date('2025-06-01T12:00:00');
+
+      const price = service.calculatePrice(startAt, endAt, 100);
+
+      expect(price).toBe(200);
+    });
+
+    it('should return correct price for 1.5 hour reservation (rounded up to 2 hours)', () => {
+      const startAt = new Date('2025-06-01T10:00:00');
+      const endAt = new Date('2025-06-01T11:30:00');
+
+      const price = service.calculatePrice(startAt, endAt, 100);
+
+      // 1.5 hodiny se zaokrouhlí nahoru → 2 hodiny → 200 Kč
+      expect(price).toBe(200);
+    });
+
+    it('should throw BadRequestException when endAt is before startAt', () => {
+      const startAt = new Date('2025-06-01T12:00:00');
+      const endAt = new Date('2025-06-01T10:00:00');
+
+      expect(() => service.calculatePrice(startAt, endAt, 100)).toThrow(
+        BadRequestException,
+      );
     });
   });
 });

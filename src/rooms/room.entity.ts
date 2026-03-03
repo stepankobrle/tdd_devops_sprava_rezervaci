@@ -12,6 +12,9 @@ export class Room {
   @Column()
   capacity: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  pricePerHour: number;
+
   @OneToMany(() => Reservation, (reservation) => reservation.room)
   reservations: Reservation[];
 }
