@@ -16,7 +16,12 @@ export class RoomsService {
     private readonly roomRepository: Repository<Room>,
   ) {}
 
-  createRoom(_dto: CreateRoomDto, _role: UserRole): Promise<Room> {
-    return Promise.reject(new Error('Not implemented'));
+  async createRoom(dto: CreateRoomDto, role: UserRole): Promise<Room> {
+    if (role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Pouze administrátor může vytvořit místnost.');
+    }
+
+    const room = this.roomRepository.create(dto);
+    return this.roomRepository.save(room);
   }
 }
