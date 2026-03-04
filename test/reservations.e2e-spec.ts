@@ -5,6 +5,11 @@ import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
 
+interface EntityResponse {
+  id: number;
+  status?: string;
+}
+
 // Integrační testy ověřují celý průchod: HTTP request → Controller → Service → DB.
 // Používáme reálnou PostgreSQL databázi (stejnou jako v CI).
 // Proměnné prostředí DB_* jsou nastaveny v CI pipeline.
@@ -32,7 +37,7 @@ describe('Reservations (e2e)', () => {
     await app.close();
   });
 
-  // Pomocné proměnné sdílené mezi testy
+  
   let userId: number;
   let roomId: number;
   let reservationId: number;
@@ -47,7 +52,7 @@ describe('Reservations (e2e)', () => {
       .expect(201);
 
     expect(res.body).toMatchObject({ name: 'Test User', email: 'test@example.com' });
-    userId = res.body.id as number;
+    userId = (res.body as EntityResponse).id;
   });
 
   it('POST /rooms — ADMIN může vytvořit místnost (HTTP 201)', async () => {
@@ -58,7 +63,7 @@ describe('Reservations (e2e)', () => {
       .expect(201);
 
     expect(res.body).toMatchObject({ name: 'Zasedačka A' });
-    roomId = res.body.id as number;
+    roomId = (res.body as EntityResponse).id;
   });
 
   it('POST /rooms — USER nemůže vytvořit místnost (HTTP 403)', async () => {
@@ -83,8 +88,9 @@ describe('Reservations (e2e)', () => {
       })
       .expect(201);
 
-    expect(res.body).toMatchObject({ id: expect.any(Number) });
-    reservationId = res.body.id as number;
+    const body = res.body as EntityResponse;
+    expect(body).toMatchObject({ id: expect.any(Number) });
+    reservationId = body.id;
   });
 
   it('POST /reservations — kolize časů vrátí HTTP 409', async () => {
@@ -93,7 +99,7 @@ describe('Reservations (e2e)', () => {
       .send({
         roomId,
         userId,
-        startAt: '2025-07-01T11:00:00', // překrývá se s předchozí
+        startAt: '2025-07-01T11:00:00',
         endAt: '2025-07-01T13:00:00',
       })
       .expect(409);
