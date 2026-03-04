@@ -83,8 +83,8 @@ describe('Reservations (e2e)', () => {
       .send({
         roomId,
         userId,
-        startAt: '2025-07-01T10:00:00',
-        endAt: '2025-07-01T12:00:00',
+        startAt: '2027-07-01T10:00:00',
+        endAt: '2027-07-01T12:00:00',
       })
       .expect(201);
 
@@ -99,8 +99,8 @@ describe('Reservations (e2e)', () => {
       .send({
         roomId,
         userId,
-        startAt: '2025-07-01T11:00:00',
-        endAt: '2025-07-01T13:00:00',
+        startAt: '2027-07-01T11:00:00',
+        endAt: '2027-07-01T13:00:00',
       })
       .expect(409);
   });
