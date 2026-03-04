@@ -89,7 +89,7 @@ describe('Reservations (e2e)', () => {
       .expect(201);
 
     const body = res.body as EntityResponse;
-    expect(body).toMatchObject({ id: expect.any(Number) });
+    expect(typeof body.id).toBe('number');
     reservationId = body.id;
   });
 
