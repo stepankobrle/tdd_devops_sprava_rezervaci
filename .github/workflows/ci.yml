@@ -55,6 +55,9 @@ jobs:
       - name: Unit testy + coverage report
         run: npm run test:cov
 
+      - name: Integrační testy (e2e)
+        run: npm run test:e2e
+
       - name: Nahrát coverage report jako artefakt
         uses: actions/upload-artifact@v4
         if: always()
