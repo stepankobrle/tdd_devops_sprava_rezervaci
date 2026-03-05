@@ -38,18 +38,18 @@ describe('RoomsService', () => {
   });
 
   // =========================================================
-  // BUSINESS PRAVIDLO 3: Omezení rolí
+  // 3.: Omezení rolí
   // Pouze ADMIN může vytvořit novou místnost.
   // Běžný USER dostane ForbiddenException (HTTP 403).
   // =========================================================
   describe('createRoom', () => {
-    it('should throw ForbiddenException when user role is USER', async () => {
+    it(' ForbiddenException kdyz role je USER', async () => {
       await expect(
         service.createRoom({ name: 'Zasedačka A', capacity: 10 }, UserRole.USER),
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('should create room when user role is ADMIN', async () => {
+    it('kdyz role je ADMIN', async () => {
       const savedRoom: Partial<Room> = { id: 1, name: 'Zasedačka A', capacity: 10 };
       roomRepository.create.mockReturnValue(savedRoom);
       roomRepository.save.mockResolvedValue(savedRoom);
