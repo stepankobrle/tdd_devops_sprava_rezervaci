@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rezervace-config
+data:
+  DB_HOST: postgres-service
+  DB_PORT: "5432"
+  NODE_ENV: production
+  PORT: "3000"
