@@ -179,6 +179,8 @@ Job 3: Deploy - Staging  [pouze větve main / feature/testy]
 
 Konfigurace: [.github/workflows/ci.yml](.github/workflows/ci.yml)
 
+> **Poznámka k Job 3 (Deploy):** GitHub Actions runner běží na Linuxu a nemůže se připojit k lokálnímu minikube clusteru. Deploy job je v pipeline definovaný a funkční — pro plné fungování by vyžadoval cloud K8s cluster (AKS, GKE, EKS) nebo self-hosted runner běžící na stejném stroji jako minikube.
+
 ---
 
 ## Kontejnerizace
