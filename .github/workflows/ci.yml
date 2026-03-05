@@ -127,6 +127,7 @@ jobs:
     needs: docker
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/testy'
     environment: staging
+    continue-on-error: true  # lokální minikube není dostupný z GitHub runnerů
 
     steps:
       - name: Checkout kódu
